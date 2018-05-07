@@ -3,6 +3,7 @@ package cc.max.Othello;
 import java.io.ByteArrayInputStream;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import cc.max.Othello.pojo.Side;
@@ -16,7 +17,7 @@ public class OthelloTest {
 		gui.show(controller);
 		Assert.assertTrue(true);
 	}
-	
+
 	@Test
 	public void playAnValidMove() throws Exception {
 
@@ -49,7 +50,8 @@ public class OthelloTest {
 		inputs.append("c4").append("\n");
 		inputs.append("exit").append("\n");
 
-		System.setIn(new ByteArrayInputStream(inputs.toString().getBytes()));
+		ByteArrayInputStream bais = new ByteArrayInputStream(inputs.toString().getBytes());
+		System.setIn(bais);
 
 		gui.waitForInput(controller);
 
@@ -75,6 +77,18 @@ public class OthelloTest {
 		gui.waitForInput(controller);
 
 		Assert.assertTrue(true);
+	}
+
+	@Ignore
+	@Test
+	public void playACompeleteSize4Games() {
+
+	}
+
+	@Ignore
+	@Test
+	public void playACompeleteSize8Games() {
+
 	}
 
 }

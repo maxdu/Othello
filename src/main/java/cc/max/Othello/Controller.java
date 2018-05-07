@@ -110,7 +110,7 @@ public class Controller {
 	}
 
 	public boolean teminationCheck() {
-		if (occupiedMoves.size() == 48) {
+		if (occupiedMoves.size() == this.getDemension() * this.getDemension()) {
 			System.out.println(String.format("Game board is full! The winner is %s !", checkWinner()));
 			return true;
 		}
@@ -310,10 +310,10 @@ public class Controller {
 	}
 
 	private boolean insideTheBoard(int x, int y) {
-		if (x > 7 || x < 0) {
+		if (x > this.getDemension() - 1 || x < 0) {
 			return false;
 		}
-		if (y > 7 || y < 0) {
+		if (y > this.getDemension() - 1 || y < 0) {
 			return false;
 		}
 		return true;

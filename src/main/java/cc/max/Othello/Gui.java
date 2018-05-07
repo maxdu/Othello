@@ -1,8 +1,8 @@
 package cc.max.Othello;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -13,6 +13,8 @@ public class Gui {
 
 	public static final String EXIT = "exit";
 	public static final String NEXT = "next";
+
+	private Controller controller = null;
 
 	// the board
 	private static String[][] board = null;
@@ -32,6 +34,9 @@ public class Gui {
 	}
 
 	public void show(Controller controller) {
+
+		this.controller = controller;
+
 		// update board
 		controller.updateBoard(board);
 
@@ -40,15 +45,11 @@ public class Gui {
 
 		// print board
 		printTheBoard(controller.getDemension());
-
-		// asking for input
-		askingForInput(String.format("Now '%s' plays, please input your move (e.g. c6) and press Enter",
-				controller.getCurrentPlayer().name()));
 	}
 
 	public String waitForInput(Controller controller) throws Exception {
 
-		Scanner sc = new Scanner(new InputStreamReader(System.in));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		try {
 
@@ -60,14 +61,17 @@ public class Gui {
 			if (!controller.hasAvailableMove()) {
 				controller.swapPlayers();
 				System.out.println(String.format("swap player since there is no available move"));
+				System.out.println();
 				return NEXT;
 			}
+			
+			askingForInput();
 
 			StringBuffer inputStr = new StringBuffer();
 			do {
 				String playerInput;
-
-				playerInput = sc.nextLine();
+				
+				playerInput = reader.readLine();
 
 				if (StringUtils.isEmpty(playerInput)) {
 					continue;
@@ -96,9 +100,8 @@ public class Gui {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			sc.close();
 		}
+
 		System.out.println("next ...");
 		return NEXT;
 	}
@@ -123,6 +126,7 @@ public class Gui {
 
 	private void askingForInput(String guiSay) {
 		System.out.println(guiSay);
+		System.out.println();
 	}
 
 	private void printTheBoard(int demension) {
@@ -135,6 +139,11 @@ public class Gui {
 			System.out.print("\n");
 		}
 		System.out.println(" abcdefgh");
+	}
+
+	public void askingForInput() {
+		askingForInput(String.format("Now '%s' plays, please input your move (e.g. c6) and press Enter",
+				this.controller.getCurrentPlayer().name()));
 	}
 
 }
