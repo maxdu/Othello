@@ -2,6 +2,7 @@ package cc.max.Othello;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
@@ -115,10 +116,11 @@ public class Rule {
 			}
 		} while (transMove != null);
 		logger.debug(String.format("checking direction %s, foundMoves %s", direction.getName(), foundMoves.size()));
-		if (foundMoves.size() > 0 && sideCriteriaCheck(foundMoves, side)) {
+		List<Move> moveToFlip = new ArrayList<>();
+		if (foundMoves.size() > 0 && sideCriteriaCheck(foundMoves, side, moveToFlip)) {
 			// side criteria matched and need put them into
 			// updateOccupiedMoves(flip the side)
-			updateOccupiedMoves.addAll(foundMoves.subList(0, foundMoves.size() - 1));
+			updateOccupiedMoves.addAll(moveToFlip);
 		}
 
 	}
@@ -136,24 +138,28 @@ public class Rule {
 		return foundMove;
 	}
 
-	private boolean sideCriteriaCheck(List<Move> movesToCheck, Side side) {
+	private boolean sideCriteriaCheck(List<Move> movesToCheck, Side side, List<Move> movesToFlip) {
 		movesToCheck
 				.forEach(x -> logger.debug(String.format("%s%s,side=%s", x.getAxisXc(), x.getAxisYc(), x.getSide())));
 
-		// at least 3 moves (include the move being placed) to finish a line
+		// at least 3 moves (include the move being placed) to finish a capture
 		if (movesToCheck.size() < 2) {
 			return false;
 		}
 
-		// the last one must be the same side
-		if (movesToCheck.get(movesToCheck.size() - 1).getSide() != side)
-			return false;
-
-		// all others must be the other side
-		if (movesToCheck.subList(0, movesToCheck.size() - 1).stream().filter(x -> x.getSide() == side).findAny()
-				.isPresent()) {
+		// the first one must be different side
+		if (movesToCheck.get(0).getSide() == side) {
 			return false;
 		}
+
+		// all others should contains at least one same side
+		Optional<Move> firstSameSideMove = movesToCheck.subList(1, movesToCheck.size()).stream()
+				.filter(x -> x.getSide() == side).findFirst();
+		if (!firstSameSideMove.isPresent()) {
+			return false;
+		}
+
+		movesToFlip.addAll(movesToCheck.subList(0, movesToCheck.indexOf(firstSameSideMove.get())));
 
 		return true;
 	}
