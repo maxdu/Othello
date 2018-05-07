@@ -1,4 +1,4 @@
-package cc.max.Othello;
+package cc.max.Othello.pojo;
 
 public class Direction {
 

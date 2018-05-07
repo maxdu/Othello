@@ -1,89 +1,109 @@
 package cc.max.Othello;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Scanner;
 
+import org.apache.commons.lang3.StringUtils;
+
+import cc.max.Othello.pojo.Move;
 import jline.console.ConsoleReader;
 
 public class Gui {
 
 	public static final String EXIT = "exit";
 	public static final String NEXT = "next";
-	public static Side currentSide = null;
 
 	// the board
-	private static String[][] board = new String[8][8];
+	private static String[][] board = null;
 
-	public Gui(Side startSide) {
+	public Gui(int demension) {
 		System.out.println("Welcome to Othello game, have fun!");
 
 		// Initialize board
-		for (int x = 0; x < 8; x++) {
-			for (int y = 0; y < 8; y++) {
+		board = new String[demension][demension];
+
+		for (int x = 0; x < demension; x++) {
+			for (int y = 0; y < demension; y++) {
 				board[x][y] = "-";
 			}
 		}
 
-		// Set startSide
-		currentSide = startSide;
 	}
 
-	public void show(Rule rule) {
+	public void show(Controller controller) {
 		// update board
-		rule.updateBoard(board);
+		controller.updateBoard(board);
 
 		// clear console
 		clearConsole();
 
 		// print board
-		printTheBoard();
+		printTheBoard(controller.getDemension());
 
 		// asking for input
-		askingForInput(
-				String.format("Now '%s' plays, please input your move (e.g. c6) and press Enter", currentSide.name()));
+		askingForInput(String.format("Now '%s' plays, please input your move (e.g. c6) and press Enter",
+				controller.getCurrentPlayer().name()));
 	}
 
-	public String waitForInput(Rule rule) throws Exception {
+	public String waitForInput(Controller controller) throws Exception {
+
+		Scanner sc = new Scanner(new InputStreamReader(System.in));
+
 		try {
-			if (rule.teminationCheck()) {
+
+			if (controller.teminationCheck()) {
 				System.out.println("Game end...");
 				return EXIT;
 			}
 
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			if (!controller.hasAvailableMove()) {
+				controller.swapPlayers();
+				System.out.println(String.format("swap player since there is no available move"));
+				return NEXT;
+			}
+
 			StringBuffer inputStr = new StringBuffer();
 			do {
-				String line;
+				String playerInput;
 
-				line = reader.readLine();
-				// System.out.println(line);
+				playerInput = sc.nextLine();
 
-				if (line.trim().equalsIgnoreCase(EXIT)) {
+				if (StringUtils.isEmpty(playerInput)) {
+					continue;
+				} else {
+					System.out.println(String.format("input is %s", playerInput));
+				}
+
+				if (playerInput.trim().equalsIgnoreCase(EXIT)) {
 					System.out.println("Quit the game...");
 					return EXIT;
 				}
 				Move theMove = new Move();
-				theMove.setSide(currentSide);
-				if (!Move.isValidMoveInput(line.trim(), theMove) || !rule.isValidMove(theMove, currentSide)) {
-					System.out.println(String.format("%s is not a valid move, please input again ..", line.trim()));
+				theMove.setSide(controller.getCurrentPlayer());
+				if (!Move.isValidMoveInput(playerInput.trim(), theMove, controller.getDemension())
+						|| !controller.isValidMove(theMove)) {
+					System.out.println(
+							String.format("%s is not a valid move, please try other move ..", playerInput.trim()));
 				} else {
-					currentSide = rule.flip(currentSide);
-					System.out.println(String.format("%s is a valid move", line.trim()));
+					controller.swapPlayers();
+					System.out.println(String.format("%s is a valid move", playerInput.trim()));
 					break;
 				}
 
-				inputStr.append(line + "\n");
+				inputStr.append(playerInput + "\n");
 			} while (true);
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			sc.close();
 		}
 		System.out.println("next ...");
 		return NEXT;
 	}
 
-	public void refresh(Rule rule) {
+	public void refresh(Controller rule) throws Exception {
 
 		// update the moves
 		rule.updateTheMoves();
@@ -105,11 +125,11 @@ public class Gui {
 		System.out.println(guiSay);
 	}
 
-	private void printTheBoard() {
+	private void printTheBoard(int demension) {
 		System.out.println("````text");
-		for (int x = 0; x < 8; x++) {
+		for (int x = 0; x < demension; x++) {
 			System.out.print(x + 1);
-			for (int y = 0; y < 8; y++) {
+			for (int y = 0; y < demension; y++) {
 				System.out.print(board[y][x]);
 			}
 			System.out.print("\n");

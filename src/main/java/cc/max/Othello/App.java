@@ -1,10 +1,12 @@
 package cc.max.Othello;
 
+import cc.max.Othello.pojo.Side;
+
 public class App {
 
 	public static void main(String[] args) throws Exception {
-		Gui gui = new Gui(Side.O);
-		Rule rule = new Rule();
+		Controller rule = new Controller(Side.O, 4);
+		Gui gui = new Gui(rule.getDemension());
 		gui.show(rule);
 		String moveInput = null;
 		do {
