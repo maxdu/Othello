@@ -21,6 +21,8 @@ public class Controller {
 	public static boolean noMoveAvaialbeOwen = true;
 	public static boolean noMoveAvaiableXray = true;
 
+	public String cheatingSheet = null;
+
 	private List<Direction> directions = new ArrayList<Direction>();
 	private boolean[][] slotsTaken = null;
 	private List<Move> possibleMoveSlots = new ArrayList<Move>();
@@ -109,7 +111,7 @@ public class Controller {
 
 	}
 
-	public boolean teminationCheck() {
+	public boolean mustTerminateNow() {
 		if (occupiedMoves.size() == this.getDemension() * this.getDemension()) {
 			System.out.println(String.format("Game board is full! The winner is %s !", checkWinner()));
 			return true;
@@ -133,7 +135,12 @@ public class Controller {
 				availableMoves.add(moveToCheck);
 			}
 		}
-		availableMoves.forEach(am -> logger.info(String.format("avaialbe move %s%s", am.getAxisXc(), am.getAxisYc())));
+		cheatingSheet = null;
+		availableMoves.forEach(am -> {
+			cheatingSheet = String.format("%s%s", am.getAxisXc(), am.getAxisYc());
+			String availableMove = String.format("avaialbe move %s%s", am.getAxisXc(), am.getAxisYc());
+			logger.info(availableMove);
+		});
 
 		if (currentPlayer == Side.O) {
 			noMoveAvaialbeOwen = availableMoves.size() > 0 ? true : false;

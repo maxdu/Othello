@@ -1,20 +1,24 @@
 package cc.max.Othello;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 
 import cc.max.Othello.pojo.Move;
 import jline.console.ConsoleReader;
 
 public class Gui {
 
+	public static final Logger logger = (Logger) LogManager.getLogger(Gui.class);
+
 	public static final String EXIT = "exit";
 	public static final String NEXT = "next";
 
 	private Controller controller = null;
+	private Scanner scanner = null;
 
 	// the board
 	private static String[][] board = null;
@@ -30,6 +34,9 @@ public class Gui {
 				board[x][y] = "-";
 			}
 		}
+
+		// initialize scanner for system in
+		scanner = new Scanner(System.in);
 
 	}
 
@@ -49,14 +56,7 @@ public class Gui {
 
 	public String waitForInput(Controller controller) throws Exception {
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
 		try {
-
-			if (controller.teminationCheck()) {
-				System.out.println("Game end...");
-				return EXIT;
-			}
 
 			if (!controller.hasAvailableMove()) {
 				controller.swapPlayers();
@@ -65,37 +65,41 @@ public class Gui {
 				return NEXT;
 			}
 			
+			if (controller.mustTerminateNow()) {
+				System.out.println("Game end...");
+				return EXIT;
+			}			
+
 			askingForInput();
 
-			StringBuffer inputStr = new StringBuffer();
+			String playerInput = null;
+
 			do {
-				String playerInput;
-				
-				playerInput = reader.readLine();
+
+				playerInput = scanner.nextLine();
 
 				if (StringUtils.isEmpty(playerInput)) {
 					continue;
 				} else {
-					System.out.println(String.format("input is %s", playerInput));
+					playerInput = playerInput.trim();
+					System.out.print(String.format("Player input is %s, ", playerInput));
 				}
 
-				if (playerInput.trim().equalsIgnoreCase(EXIT)) {
+				if (playerInput.equalsIgnoreCase(EXIT)) {
 					System.out.println("Quit the game...");
 					return EXIT;
 				}
-				Move theMove = new Move();
-				theMove.setSide(controller.getCurrentPlayer());
-				if (!Move.isValidMoveInput(playerInput.trim(), theMove, controller.getDemension())
-						|| !controller.isValidMove(theMove)) {
-					System.out.println(
-							String.format("%s is not a valid move, please try other move ..", playerInput.trim()));
+
+				boolean validInput = checkPlayerInput(playerInput, controller);
+
+				if (validInput) {
+					System.out.println(String.format("%s is not a valid move, please try other move ..", playerInput));
 				} else {
 					controller.swapPlayers();
-					System.out.println(String.format("%s is a valid move", playerInput.trim()));
+					System.out.println(String.format("%s is a valid move", playerInput));
 					break;
 				}
 
-				inputStr.append(playerInput + "\n");
 			} while (true);
 
 		} catch (IOException e) {
@@ -106,12 +110,24 @@ public class Gui {
 		return NEXT;
 	}
 
-	public void refresh(Controller rule) throws Exception {
+	public boolean checkPlayerInput(String playerInput, Controller controller) {
+		Move theMove = new Move();
+		theMove.setSide(controller.getCurrentPlayer());
+		try {
+			return (Move.isValidMoveInput(playerInput, theMove, controller.getDemension())
+					&& controller.isValidMove(theMove));
+		} catch (Exception e) {
+			logger.error("Exception caught inside processInput", e);
+			return false;
+		}
+	}
+
+	public void refresh(Controller controller) throws Exception {
 
 		// update the moves
-		rule.updateTheMoves();
+		controller.updateTheMoves();
 
-		this.show(rule);
+		this.show(controller);
 	}
 
 	private void clearConsole() {
